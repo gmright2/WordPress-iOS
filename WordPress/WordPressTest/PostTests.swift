@@ -376,6 +376,61 @@ class PostTests: XCTestCase {
         XCTAssertFalse(revision.hasLocalChanges())
     }
 
+    func testThatVersionConflictWorksShouldNotConflict() {
+        let original = newTestPost()
+
+        let versionConflict = original.hasVersionConflict()
+
+        XCTAssertFalse(versionConflict, "Post should return false for `hasVersionConflict`")
+    }
+
+    // Local changes alone should not trigger `hasVersionConflict`
+    func testThatVersionConflictWorksShouldNotConflictWithOnlyTagChange() {
+        let original = newTestPost()
+        original.tags = "test"
+
+        let versionConflict = original.hasVersionConflict()
+
+        XCTAssertFalse(versionConflict, "Post should return false for `hasVersionConflict`")
+    }
+
+    // dateModified changes alone should not trigger `hasVersionConflict`
+    func testThatVersionConflictWorksShouldNotConflictWithOnlyDateChanges() {
+        let original = newTestPost()
+        original.dateModified = Date() - 5
+
+        let versionConflict = original.hasVersionConflict()
+
+        XCTAssertFalse(versionConflict, "Post should return false for `hasVersionConflict`")
+    }
+
+
+    func testThatVersionConflictWorksWithPreviousPost() {
+        let original = newTestPost()
+        original.dateModified = Date()
+
+        let local = original.createRevision() as! Post
+        local.dateModified = Date() - 5
+        local.tags = "test"
+
+        let versionConflict = local.hasVersionConflict()
+
+        XCTAssertTrue(versionConflict, "Local post with a previous date should return true for `hasVersionConflict`")
+    }
+
+    func testThatVersionConflictWorksWithLaterPost() {
+        let original = newTestPost()
+        original.dateModified = Date()
+
+        let local = original.createRevision() as! Post
+        local.dateModified = Date() + 5
+        local.tags = "test"
+
+        let versionConflict = local.hasVersionConflict()
+
+        XCTAssertTrue(versionConflict, "Local post with a more recent date should return true for `hasVersionConflict`")
+    }
+
     func testThatEnablingDisablingPublicizeConnectionsWorks() {
         let post = newTestPost()
 

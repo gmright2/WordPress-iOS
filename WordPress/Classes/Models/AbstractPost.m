@@ -581,6 +581,16 @@
             || self.remoteStatus == AbstractPostRemoteStatusFailed);
 }
 
+- (BOOL)hasVersionConflict
+{
+    AbstractPost *original = (AbstractPost *)self.original;
+    if (original.dateModified) {
+        return ![self.dateModified isEqualToDate:original.dateModified] && self.hasLocalChanges;
+    } else {
+        return NO;
+    }
+}
+
 - (BOOL)shouldAttemptAutoUpload {
     if (!self.confirmedChangesTimestamp || !self.confirmedChangesHash) {
         return NO;

@@ -111,6 +111,41 @@ class PostCardStatusViewModelTests: XCTestCase {
         expect(viewModel.status).to(equal(i18n("We'll publish the post when your device is back online.")))
         expect(viewModel.statusColor).to(equal(.warning))
     }
+
+    /// An original post created without a conflicting local post should not show 'Version Conflict' in the cell.
+    func testVersionConflictStatusMessageShouldNotShow() {
+        let original = PostBuilder(context).revision().with(remoteStatus: .sync).with(dateModified: Date()).build()
+        let viewModel = PostCardStatusViewModel(post: original, isInternetReachable: true)
+
+        expect(viewModel.status).to(equal(i18n("Local changes")))
+        expect(viewModel.statusColor).to(equal(.warning))
+    }
+
+    /// A local post created based on an remote post, but differing by -5ms should show 'Version Conflict
+    func testVersionConflictStatusWithPreviousDateMessageShouldShow() {
+        let original = PostBuilder(context).published().with(remoteStatus: .sync).with(dateModified: Date()).build()
+        let local = original.createRevision() as! Post
+        local.dateModified = Date() - 5
+        local.tags = "test"
+
+        let viewModel = PostCardStatusViewModel(post: local, isInternetReachable: true)
+
+        expect(viewModel.status).to(equal(i18n("Version Conflict")))
+        expect(viewModel.statusColor).to(equal(.error))
+    }
+
+    /// A local post created based on an remote post, but differing by +5ms should show 'Version Conflict
+    func testVersionConflictStatusWithMoreRecentDateMessageShouldShow() {
+        let original = PostBuilder(context).published().with(remoteStatus: .sync).with(dateModified: Date()).build()
+        let local = original.createRevision() as! Post
+        local.dateModified = Date() + 5
+        local.tags = "test"
+
+        let viewModel = PostCardStatusViewModel(post: local, isInternetReachable: true)
+
+        expect(viewModel.status).to(equal(i18n("Version Conflict")))
+        expect(viewModel.statusColor).to(equal(.error))
+    }
 }
 
 private extension ButtonGroups {
