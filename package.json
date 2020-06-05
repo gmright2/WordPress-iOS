@@ -1,6 +1,6 @@
 {
   "devDependencies": {
     "danger": "^9.2.10",
-    "typescript": "^3.7.5"
+    "typescript": "^3.9.5"
   }
 }
